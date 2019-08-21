@@ -7,8 +7,8 @@ namespace WebApplication1.Responses
 {
     public class ResponseDto
     {
-        public string Average { get; set; }
-        public string MinExchangeRate { get; set; }
-        public string MaxExchangeRate { get; set; }
+        public float Average { get; set; }
+        public float MinExchangeRate { get; set; }
+        public float MaxExchangeRate { get; set; }
     }
 }

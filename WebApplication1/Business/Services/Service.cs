@@ -12,25 +12,26 @@ namespace WebApplication1.Business.Services
 {
     public class Service : IService
     {
+        string baseUrl = "https://api.exchangeratesapi.io/";
         public ExcModel GetDatesForApi(InputDto data)
         {
-            List<DateTime> dates=new List<DateTime>();
-            foreach (var date in data.Dates)             
+            List<DateTime> dates = new List<DateTime>();
+            foreach (var date in data.Dates)
             {
-                dates.Add( DateTime.Parse(date));
+                dates.Add(DateTime.Parse(date));
             }
 
             return new ExcModel
             {
                 StarDate = dates.Min().ToString("yyyy-MM-dd"),
-                EndDate=dates.Max().ToString("yyyy-MM-dd")
+                EndDate = dates.Max().ToString("yyyy-MM-dd")
             };
         }
 
         public async Task<string> GetJsonFromExternalApi(string startDate, string endDate, string baseCurrency, string targetCurrency)
         {
             var currencies = baseCurrency.ToUpper() + "," + targetCurrency.ToUpper();
-            string path = $"https://api.exchangeratesapi.io/history?start_at={startDate}&end_at={endDate}&symbols={currencies}";
+            string path = baseUrl + $"history?start_at={startDate}&end_at={endDate}&symbols={currencies}";
             using (var client = new HttpClient())
             {
                 var content = await client.GetStringAsync(path);
@@ -39,31 +40,35 @@ namespace WebApplication1.Business.Services
         }
 
 
-        public ResponseDto ReturnResultForThisTask(string json)
+        public Task<ResponseDto> ReturnResultForThisTask(string json)
         {
-            
+
             JObject o = JObject.Parse(json);
             JObject jsonObejct = (JObject)o["rates"];
-            var dictionaryBase=new Dictionary<DateTime,float>();
-            var dictionaryTarget=new Dictionary<DateTime,float>();
+            var dictionaryBase = new Dictionary<DateTime, float>();
+            var dictionaryTarget = new Dictionary<DateTime, float>();
 
             foreach (var jObject in jsonObejct)
             {
-                dictionaryTarget.Add(DateTime.Parse(jObject.Key),jObject.Value.First.First.Value<float>());
-                dictionaryBase.Add(DateTime.Parse(jObject.Key),jObject.Value.Last.First.Value<float>());
+                dictionaryTarget.Add(DateTime.Parse(jObject.Key), jObject.Value.First.First.Value<float>());
+                dictionaryBase.Add(DateTime.Parse(jObject.Key), jObject.Value.Last.First.Value<float>());
             }
 
-            
 
-            var minBaseValue = dictionaryBase.Values.Min();
+
             var minTargetValue = dictionaryTarget.Values.Min();
+            var maxTargetValue = dictionaryTarget.Values.Max();
+            var average = dictionaryTarget.Values.Average();
 
 
-
-            return new ResponseDto
+            var response = new ResponseDto
             {
-                MinExchangeRate = string.Empty
+                MinExchangeRate = minTargetValue,
+                MaxExchangeRate = maxTargetValue,
+                Average = average
             };
+
+            return Task.FromResult(response);
         }
 
     }

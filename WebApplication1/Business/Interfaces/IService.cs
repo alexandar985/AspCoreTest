@@ -8,6 +8,6 @@ namespace WebApplication1.Business.Interfaces
     {
         ExcModel GetDatesForApi(InputDto data);
         Task<string> GetJsonFromExternalApi(string startDate, string endDate, string baseCurrency, string targetCurrency);
-        ResponseDto ReturnResultForThisTask(string json);
+       Task<ResponseDto> ReturnResultForThisTask(string json);
     }
 }
